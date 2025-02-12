@@ -47,10 +47,10 @@
             reader.onload = async function(event) {
                 const base64String = event.target.result.split(",")[1];
 
-                const repoOwner = "TU_USUARIO_GITHUB";  // Tu usuario de GitHub
-                const repoName = "TU_REPOSITORIO";      // El repositorio donde guardarás las fotos
+                const repoOwner = "SPARKGY";  // Tu usuario de GitHub
+                const repoName = "SUBIR-FOTO";      // El repositorio donde guardarás las fotos
                 const filePath = `fotos/${cuil}.jpg`;  // Ruta en el repositorio (carpeta "fotos")
-                const githubToken = "TU_GITHUB_PERSONAL_ACCESS_TOKEN";  // Token de GitHub
+                const githubToken = "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";  // Token de GitHub
 
                 const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
 
