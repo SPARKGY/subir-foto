@@ -5,87 +5,94 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subir Foto a GitHub</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 20px;
-        }
-        input, button {
-            margin: 10px;
-            padding: 10px;
-            width: 90%;
-            max-width: 400px;
-        }
+        body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
+        video, canvas { width: 100%; max-width: 400px; }
+        button, input { margin: 10px; padding: 10px; width: 90%; max-width: 400px; }
     </style>
 </head>
 <body>
-    <h2>Subir Foto</h2>
+    <h2>Tomar Foto y Subir a GitHub</h2>
 
-    <label for="cuil">CUIL:</label>
-    <input type="text" id="cuil" placeholder="Ingrese su CUIL" required>
+    <!-- Video para previsualizar la cámara -->
+    <video id="video" autoplay></video>
+    <canvas id="canvas" style="display: none;"></canvas>
 
-    <label for="foto">Seleccione una foto:</label>
-    <input type="file" id="foto" accept="image/*" capture="environment">
+    <br>
+    <button id="captureBtn">📸 Tomar Foto</button>
+    <button id="uploadBtn" disabled>⬆ Subir a GitHub</button>
 
-    <button onclick="subirFoto()">Subir Foto</button>
+    <p id="status"></p>
 
     <script>
-        async function subirFoto() {
-            const cuil = document.getElementById('cuil').value.trim();
-            const fileInput = document.getElementById('foto').files[0];
+        const video = document.getElementById("video");
+        const canvas = document.getElementById("canvas");
+        const captureBtn = document.getElementById("captureBtn");
+        const uploadBtn = document.getElementById("uploadBtn");
+        const statusMsg = document.getElementById("status");
 
-            if (!cuil.match(/^\d{11}$/)) {
-                alert("El CUIL debe tener 11 dígitos.");
-                return;
-            }
-            if (!fileInput) {
-                alert("Seleccione o tome una foto.");
-                return;
-            }
+        const repoOwner = "SPARKGY";  // 🔴 Reemplázalo con tu usuario de GitHub
+        const repoName = "subir-foto";  // 🔴 Reemplázalo con tu repositorio
+        const githubToken = "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";  // ⚠ 🔴 NO LO USES EN PRODUCCIÓN
 
-            const reader = new FileReader();
-            reader.onload = async function(event) {
-                const base64String = event.target.result.split(",")[1];
+        // Acceder a la cámara del celular
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(error => {
+                console.error("Error al acceder a la cámara:", error);
+                statusMsg.innerText = "❌ No se pudo acceder a la cámara.";
+            });
 
-                const repoOwner = "SPARKGY";  // Tu usuario de GitHub
-                const repoName = "SUBIR-FOTO";      // El repositorio donde guardarás las fotos
-                const filePath = `fotos/${cuil}.jpg`;  // Ruta en el repositorio (carpeta "fotos")
-                const githubToken = "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";  // Token de GitHub
+        // Capturar foto
+        captureBtn.addEventListener("click", () => {
+            const context = canvas.getContext("2d");
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Habilitar el botón de subida
+            uploadBtn.disabled = false;
+            statusMsg.innerText = "📸 Foto tomada. Ahora puedes subirla.";
+        });
 
-                const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
+        // Subir la foto a GitHub
+        uploadBtn.addEventListener("click", async () => {
+            statusMsg.innerText = "⏳ Subiendo foto...";
+            const imageData = canvas.toDataURL("image/jpeg").split(",")[1];  // Convertir a Base64
+            const filePath = `fotos/foto_${Date.now()}.jpg`;  // Nombre único
 
-                const data = {
-                    message: `Subiendo foto de ${cuil}`,
-                    content: base64String
-                };
+            const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
 
-                const headers = {
-                    "Authorization": `Bearer ${githubToken}`,
-                    "Accept": "application/vnd.github.v3+json",
-                    "Content-Type": "application/json"
-                };
-
-                try {
-                    const response = await fetch(apiUrl, {
-                        method: "PUT",
-                        headers: headers,
-                        body: JSON.stringify(data)
-                    });
-
-                    if (response.ok) {
-                        alert("Imagen subida con éxito a GitHub.");
-                    } else {
-                        const errorData = await response.json();
-                        console.error("Error:", errorData);
-                        alert("Hubo un problema al subir la imagen.");
-                    }
-                } catch (error) {
-                    console.error("Error:", error);
-                    alert("Hubo un problema al subir la imagen.");
-                }
+            const data = {
+                message: "Subiendo foto desde la cámara",
+                content: imageData
             };
-            reader.readAsDataURL(fileInput);
-        }
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: "PUT",
+                    headers: {
+                        "Authorization": `Bearer ${githubToken}`,
+                        "Accept": "application/vnd.github.v3+json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    statusMsg.innerText = "✅ Foto subida con éxito a GitHub.";
+                } else {
+                    const errorData = await response.json();
+                    console.error("❌ Error en GitHub API:", errorData);
+                    statusMsg.innerText = `❌ Error al subir: ${errorData.message}`;
+                }
+            } catch (error) {
+                console.error("❌ Error general:", error);
+                statusMsg.innerText = "❌ Hubo un problema al subir la imagen.";
+            }
+        });
     </script>
 </body>
 </html>
+
