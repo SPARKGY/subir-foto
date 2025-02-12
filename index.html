@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subir Foto a GitHub</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        input, button {
+            margin: 10px;
+            padding: 10px;
+            width: 90%;
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Subir Foto</h2>
+
+    <label for="cuil">CUIL:</label>
+    <input type="text" id="cuil" placeholder="Ingrese su CUIL" required>
+
+    <label for="foto">Seleccione una foto:</label>
+    <input type="file" id="foto" accept="image/*" capture="environment">
+
+    <button onclick="subirFoto()">Subir Foto</button>
+
+    <script>
+        async function subirFoto() {
+            const cuil = document.getElementById('cuil').value.trim();
+            const fileInput = document.getElementById('foto').files[0];
+
+            if (!cuil.match(/^\d{11}$/)) {
+                alert("El CUIL debe tener 11 dígitos.");
+                return;
+            }
+            if (!fileInput) {
+                alert("Seleccione o tome una foto.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async function(event) {
+                const base64String = event.target.result.split(",")[1];
+
+                const repoOwner = "TU_USUARIO_GITHUB";  // Tu usuario de GitHub
+                const repoName = "TU_REPOSITORIO";      // El repositorio donde guardarás las fotos
+                const filePath = `fotos/${cuil}.jpg`;  // Ruta en el repositorio (carpeta "fotos")
+                const githubToken = "TU_GITHUB_PERSONAL_ACCESS_TOKEN";  // Token de GitHub
+
+                const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
+
+                const data = {
+                    message: `Subiendo foto de ${cuil}`,
+                    content: base64String
+                };
+
+                const headers = {
+                    "Authorization": `Bearer ${githubToken}`,
+                    "Accept": "application/vnd.github.v3+json",
+                    "Content-Type": "application/json"
+                };
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: "PUT",
+                        headers: headers,
+                        body: JSON.stringify(data)
+                    });
+
+                    if (response.ok) {
+                        alert("Imagen subida con éxito a GitHub.");
+                    } else {
+                        const errorData = await response.json();
+                        console.error("Error:", errorData);
+                        alert("Hubo un problema al subir la imagen.");
+                    }
+                } catch (error) {
+                    console.error("Error:", error);
+                    alert("Hubo un problema al subir la imagen.");
+                }
+            };
+            reader.readAsDataURL(fileInput);
+        }
+    </script>
+</body>
+</html>
