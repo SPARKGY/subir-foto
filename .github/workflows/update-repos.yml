@@ -18,7 +18,7 @@ jobs:
 
       - name: Fetch repository data
         run: |
-          curl -H "Authorization: Bearer ${{ secrets.GITHUB_FINE_TOKEN }}" \
+          curl -H "Authorization: Bearer ${{ secrets.FINE_TOKEN }}" \
                -H "Accept: application/vnd.github.v3+json" \
                https://api.github.com/repos/SPARKGY/subir-foto/contents/ > repos.json
 
