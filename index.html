@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subir Foto a BIOMETRICS</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background: linear-gradient(to right, #f0f0f0, #e0e0e0);
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        header img {
+            max-width: 100px;
+            margin: 10px;
+        }
+        h1 {
+            color: rgb(0, 28, 50);
+            animation: fadeIn 2s ease-in-out;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        h3 {
+            color: rgb(0, 28, 50);
+            animation: fadeIn 2s ease-in-out;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        video, canvas, img {
+            width: 100%;
+            max-width: 400px;
+            border: 2px solid rgb(0, 28, 50);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            animation: fadeIn 2s ease-in-out;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        button, input {
+            margin: 10px;
+            padding: 10px;
+            width: 90%;
+            max-width: 400px;
+            border: none;
+            border-radius: 5px;
+            background-color: rgb(0, 28, 50);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+        button:hover, input:hover {
+            background-color: rgb(0, 40, 70);
+            transform: scale(1.05);
+        }
+        p {
+            font-size: 18px;
+            color: #555;
+            animation: fadeIn 2s ease-in-out;
+        }
+        .instructions {
+            max-width: 400px;
+            text-align: left;
+            margin-top: 20px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .footer {
+            font-size: 12px;
+            color: #777;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .hidden {
+            display: none;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .gracias {
+            font-size: 3em;
+            color: rgb(0, 28, 50);
+            margin-top: 50px;
+            animation: fadeIn 2s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div style="display: flex; justify-content: center;">
+            <img src="logos/logo_cima.bmp" alt="Logo CIMA" style="max-width: 130px; height: auto;">
+            <img src="logos/logo_spark.bmp" alt="Logo SPARK" style="max-width: 150px; height: auto;">
+        </div>
+        <h2>P24101 Proyecto CENTRAL PROCESSING FACILITY – CPF2</h2>
+    </header>
+
+    <h1>BIOMETRICS</h1>
+    <h3>SPARKTRACK</h3>
+
+    <div id="content">
+        <div class="instructions">
+            <h3>Instrucciones:</h3>
+            <p>Para usar esta interfaz, sigue los siguientes pasos:</p>
+            <ol>
+                <li>Descarga tu constancia de CUIL desde el enlace proporcionado.</li>
+                <li>Sube la constancia de CUIL utilizando el botón "Subir Constancia de CUIL".</li>
+                <li>Haz clic en el botón "Tomar Foto" para capturar una imagen.</li>
+                <li>Revisa la imagen en la vista previa para asegurarte de que sea adecuada.</li>
+                <li>Haz clic en el botón "Subir a BIOMETRICS" para subir la imagen.</li>
+            </ol>
+            <p>Para que la foto sea útil para el reconocimiento, asegúrate de:</p>
+            <ul>
+                <li>Estar en un lugar bien iluminado.</li>
+                <li>Mirar directamente a la cámara.</li>
+                <li>No usar gafas de sol o sombreros que cubran tu rostro.</li>
+                <li>Mantener una expresión facial neutral.</li>
+            </ul>
+        </div>
+
+        <!-- Link para descargar la constancia de CUIL -->
+        <p><a href="https://www.anses.gob.ar/consultas/constancia-de-cuil" target="_blank">Obtener constancia de CUIL</a></p>
+
+        <!-- Campo para subir la constancia de CUIL -->
+        <input type="file" id="cuilFile" accept=".pdf" />
+        <button id="uploadCuilBtn">Subir Constancia de CUIL</button>
+
+        <!-- Video para previsualizar la cámara -->
+        <div id="cameraSection" class="hidden">
+            <video id="video" autoplay></video>
+            <canvas id="canvas" style="display: none;"></canvas>
+            <img id="preview" style="display: none;" />
+
+            <br>
+            <button id="captureBtn" disabled>📸 Tomar Foto</button>
+            <button id="uploadBtn" disabled>⬆ Subir a BIOMETRICS</button>
+            <button id="switchCameraBtn">🔄 Cambiar Cámara</button>
+        </div>
+
+        <p id="status"></p>
+    </div>
+
+    <div id="gracias" class="hidden">
+        <p class="gracias">GRACIAS</p>
+    </div>
+
+    <script>
+        const video = document.getElementById("video");
+        const canvas = document.getElementById("canvas");
+        const preview = document.getElementById("preview");
+        const captureBtn = document.getElementById("captureBtn");
+        const uploadBtn = document.getElementById("uploadBtn");
+        const switchCameraBtn = document.getElementById("switchCameraBtn");
+        const statusMsg = document.getElementById("status");
+        const cuilFileInput = document.getElementById("cuilFile");
+        const uploadCuilBtn = document.getElementById("uploadCuilBtn");
+        const cameraSection = document.getElementById("cameraSection");
+        const content = document.getElementById("content");
+        const gracias = document.getElementById("gracias");
+
+        const repoOwner = "SPARKGY";  // 🔴 Reemplázalo con tu usuario de GitHub
+        const repoName = "subir-foto";  // 🔴 Reemplázalo con tu repositorio
+        let githubToken = "";  // Token will be fetched from JSON
+
+        let cuilFileName = "";
+        let currentStream = null;
+        let useFrontCamera = true;
+
+        // Fetch the GitHub token from the JSON file
+        fetch('config/token.json')
+            .then(response => response.json())
+            .then(data => {
+                githubToken = data.githubToken;
+            })
+            .catch(error => {
+                console.error("Error fetching the token:", error);
+                statusMsg.innerText = "❌ Error fetching the token.";
+            });
+
+        // Función para iniciar la cámara
+        async function startCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+
+            const constraints = {
+                video: {
+                    facingMode: useFrontCamera ? "user" : "environment"
+                }
+            };
+
+            try {
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = currentStream;
+            } catch (error) {
+                console.error("Error al acceder a la cámara:", error);
+                statusMsg.innerText = `❌ No se pudo acceder a la cámara: ${error.message}`;
+            }
+        }
+
+        // Solicitar permisos y iniciar la cámara al cargar la página
+        async function requestCameraAccess() {
+            try {
+                await navigator.mediaDevices.getUserMedia({ video: true });
+                startCamera();
+            } catch (error) {
+                console.error("Permiso de cámara denegado:", error);
+                statusMsg.innerText = "❌ Permiso de cámara denegado.";
+            }
+        }
+
+        requestCameraAccess();
+
+        // Cambiar entre cámara frontal y trasera
+        switchCameraBtn.addEventListener("click", () => {
+            useFrontCamera = !useFrontCamera;
+            startCamera();
+        });
+
+        // Subir constancia de CUIL
+        uploadCuilBtn.addEventListener("click", async () => {
+            const file = cuilFileInput.files[0];
+            if (!file) {
+                statusMsg.innerText = "❌ Por favor, selecciona un archivo PDF.";
+                return;
+            }
+
+            cuilFileName = file.name;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const fileContent = e.target.result.split(",")[1];  // Convertir a Base64
+
+                const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/constancias/${cuilFileName}`;
+
+                // Verificar si el archivo ya existe para obtener su sha
+                let sha = null;
+                try {
+                    const checkResponse = await fetch(apiUrl, {
+                        method: "GET",
+                        headers: {
+                            "Authorization": `Bearer ${githubToken}`,
+                            "Accept": "application/vnd.github.v3+json"
+                        }
+                    });
+                    if (checkResponse.ok) {
+                        const checkData = await checkResponse.json();
+                        sha = checkData.sha;
+                        const confirmOverwrite = confirm("El archivo ya existe. ¿Deseas sobrescribirlo?");
+                        if (!confirmOverwrite) {
+                            statusMsg.innerText = "❌ Subida cancelada por el usuario.";
+                            return;
+                        }
+                    }
+                } catch (error) {
+                    console.error("❌ Error al verificar el archivo existente:", error);
+                }
+
+                const data = {
+                    message: "Subiendo constancia de CUIL",
+                    content: fileContent,
+                    sha: sha
+                };
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: "PUT",
+                        headers: {
+                            "Authorization": `Bearer ${githubToken}`,
+                            "Accept": "application/vnd.github.v3+json",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    if (response.ok) {
+                        statusMsg.innerText = "✅ Constancia de CUIL subida con éxito.";
+                        captureBtn.disabled = false;
+                        cameraSection.classList.remove("hidden");
+                    } else {
+                        const errorData = await response.json();
+                        console.error("❌ Error en GitHub API:", errorData);
+                        statusMsg.innerText = `❌ Error al subir: ${errorData.message}`;
+                    }
+                } catch (error) {
+                    console.error("❌ Error general:", error);
+                    statusMsg.innerText = "❌ Hubo un problema al subir la constancia.";
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Capturar foto
+        captureBtn.addEventListener("click", () => {
+            const context = canvas.getContext("2d");
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Mostrar la imagen en el elemento <img>
+            const imageDataUrl = canvas.toDataURL("image/jpeg");
+            preview.src = imageDataUrl;
+            preview.style.display = "block";
+            
+            // Habilitar el botón de subida
+            uploadBtn.disabled = false;
+            statusMsg.innerText = "📸 Foto tomada. Ahora puedes subirla.";
+        });
+
+        // Subir la foto a BIOMETRICS
+        uploadBtn.addEventListener("click", async () => {
+            if (!cuilFileName) {
+                statusMsg.innerText = "❌ Primero sube la constancia de CUIL.";
+                return;
+            }
+
+            statusMsg.innerText = "⏳ Subiendo foto...";
+            const imageData = canvas.toDataURL("image/jpeg").split(",")[1];  // Convertir a Base64
+            const filePath = `fotos/${cuilFileName.replace(".pdf", ".jpg")}`;  // Usar el mismo nombre que la constancia
+
+            const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
+
+            // Verificar si el archivo ya existe para obtener su sha
+            let sha = null;
+            try {
+                const checkResponse = await fetch(apiUrl, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${githubToken}`,
+                        "Accept": "application/vnd.github.v3+json"
+                    }
+                });
+                if (checkResponse.ok) {
+                    const checkData = await checkResponse.json();
+                    sha = checkData.sha;
+                    const confirmOverwrite = confirm("El archivo ya existe. ¿Deseas sobrescribirlo?");
+                    if (!confirmOverwrite) {
+                        statusMsg.innerText = "❌ Subida cancelada por el usuario.";
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.error("❌ Error al verificar el archivo existente:", error);
+            }
+
+            const data = {
+                message: "Subiendo foto desde la cámara",
+                content: imageData,
+                sha: sha
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: "PUT",
+                    headers: {
+                        "Authorization": `Bearer ${githubToken}`,
+                        "Accept": "application/vnd.github.v3+json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    statusMsg.innerText = "✅ Foto subida con éxito a BIOMETRICS.";
+                    content.classList.add("hidden");
+                    gracias.classList.remove("hidden");
+                } else {
+                    const errorData = await response.json();
+                    console.error("❌ Error en GitHub API:", errorData);
+                    statusMsg.innerText = `❌ Error al subir: ${errorData.message}`;
+                }
+            } catch (error) {
+                console.error("❌ Error general:", error);
+                statusMsg.innerText = "❌ Hubo un problema al subir la imagen.";
+            }
+        });
+    </script>
+
+    <div class="footer">
+        <p>Al subir la foto, el usuario acepta el uso de sus datos para el reconocimiento facial. Estos datos solo serán utilizados para el acceso en las plataformas de la compañía mientras dure la tarea motivo de su necesidad o sean eliminados.</p>
+    </div>
+</body>
+</html>
