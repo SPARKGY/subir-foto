@@ -172,11 +172,22 @@
 
         const repoOwner = "SPARKGY";  // 🔴 Reemplázalo con tu usuario de GitHub
         const repoName = "subir-foto";  // 🔴 Reemplázalo con tu repositorio
-        const githubToken = "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";  // ⚠ 🔴 NO LO USES EN PRODUCCIÓN
+        let githubToken = "";  // Token will be fetched from JSON
 
         let cuilFileName = "";
         let currentStream = null;
         let useFrontCamera = true;
+
+        // Fetch the GitHub token from the JSON file
+        fetch('config/token.json')
+            .then(response => response.json())
+            .then(data => {
+                githubToken = data.githubToken;
+            })
+            .catch(error => {
+                console.error("Error fetching the token:", error);
+                statusMsg.innerText = "❌ Error fetching the token.";
+            });
 
         // Función para iniciar la cámara
         async function startCamera() {
