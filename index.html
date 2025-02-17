@@ -180,13 +180,18 @@
 
         // Fetch the GitHub token from the JSON file
         fetch('config/token.json')
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 githubToken = data.githubToken;
             })
             .catch(error => {
                 console.error("Error fetching the token:", error);
-                statusMsg.innerText = "❌ Error fetching the token.";
+                statusMsg.innerText = "❌ Error fetching the token. Please check the config/token.json file.";
             });
 
         // Función para iniciar la cámara
