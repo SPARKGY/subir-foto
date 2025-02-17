@@ -1,0 +1,31 @@
+name: Generate Repository JSON
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Ejecuta la acción todos los días a la medianoche UTC
+  push:
+    branches:
+      - main  # También se ejecuta cuando haces cambios en main
+  workflow_dispatch:  # Permite ejecutarlo manualmente
+
+jobs:
+  update-repo-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Fetch repository data
+        run: |
+          curl -H "Authorization: Bearer ${{ secrets.GITHUB_FINE_TOKEN }}" \
+               -H "Accept: application/vnd.github.v3+json" \
+               https://api.github.com/repos/SPARKGY/subir-foto/contents/ > repos.json
+
+      - name: Commit and push
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add repos.json
+          git commit -m "Update repository data" || echo "No changes to commit"
+          git push
