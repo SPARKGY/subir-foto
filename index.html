@@ -179,7 +179,7 @@
         let useFrontCamera = true;
 
         // Fetch the GitHub token from the JSON file
-        fetch('config/token.json')
+        fetch('token.json')
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -191,7 +191,7 @@
             })
             .catch(error => {
                 console.error("Error fetching the token:", error);
-                statusMsg.innerText = "❌ Error fetching the token. Please check the config/token.json file.";
+                statusMsg.innerText = "❌ Error fetching the token. Please check the token.json file.";
             });
 
         // Función para iniciar la cámara

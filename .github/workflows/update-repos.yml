@@ -18,9 +18,11 @@ jobs:
 
       - name: Fetch repository data
         run: |
+          set -e
           curl -H "Authorization: Bearer ${{ secrets.FINE_TOKEN }}" \
                -H "Accept: application/vnd.github.v3+json" \
-               https://api.github.com/repos/SPARKGY/subir-foto/contents/ > repos.json
+               https://api.github.com/repos/SPARKGY/subir-foto/contents/ -o repos.json
+          cat repos.json | jq empty
 
       - name: Commit and push
         run: |
@@ -28,4 +30,16 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add repos.json
           git commit -m "Update repository data" || echo "No changes to commit"
+          git push
+
+      - name: Generate token JSON
+        run: |
+          echo '{ "githubToken": "${{ secrets.FINE_TOKEN }}" }' > token.json
+
+      - name: Commit and push token JSON
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add token.json
+          git commit -m "Update token JSON" || echo "No changes to commit"
           git push
