@@ -29,15 +29,3 @@ jobs:
           git add repos.json
           git commit -m "Update repository data" || echo "No changes to commit"
           git push
-
-      - name: Generate token JSON
-        run: |
-          echo '{ "githubToken": "${{ secrets.MY_GITHUB_TOKEN }}" }' > token.json
-
-      - name: Commit and push token JSON
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add token.json
-          git commit -m "Update token JSON" || echo "No changes to commit"
-          git push

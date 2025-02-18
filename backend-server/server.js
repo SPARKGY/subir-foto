@@ -17,6 +17,14 @@ app.get('/get-repo-data', (req, res) => {
   });
 });
 
+app.get('/get-github-token', (req, res) => {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) {
+    return res.status(500).json({ error: 'GitHub token not found' });
+  }
+  res.json({ githubToken: token });
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
