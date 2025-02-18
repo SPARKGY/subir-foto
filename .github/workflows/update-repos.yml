@@ -19,7 +19,7 @@ jobs:
       - name: Fetch repository data
         run: |
           curl -H "Accept: application/json" \
-               https://your-backend-server.com/get-repo-data -o repos.json
+               https://<your-vercel-url>/get-repo-data -o repos.json  # Actualiza esta URL con la URL de tu despliegue en Vercel
           cat repos.json | jq empty
 
       - name: Commit and push repos.json
