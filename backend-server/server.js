@@ -17,7 +17,7 @@ app.get('/get-repo-data', (req, res) => {
 });
 
 app.get('/get-github-token', (req, res) => {
-  const token = process.env.GITHUB_TOKEN;  // Asegúrate de configurar esta variable de entorno en Vercel
+  const token = process.env.MY_GITHUB_TOKEN;  // Asegúrate de configurar esta variable de entorno en Vercel
   if (!token) {
     return res.status(500).json({ error: 'Token not found' });
   }
