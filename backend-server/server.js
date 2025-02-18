@@ -1,4 +1,3 @@
-// filepath: /backend-server/server.js
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
@@ -18,9 +17,9 @@ app.get('/get-repo-data', (req, res) => {
 });
 
 app.get('/get-github-token', (req, res) => {
-  const token = process.env.GITHUB_TOKEN;
+  const token = process.env.GITHUB_TOKEN;  // Asegúrate de configurar esta variable de entorno en Vercel
   if (!token) {
-    return res.status(500).json({ error: 'GitHub token not found' });
+    return res.status(500).json({ error: 'Token not found' });
   }
   res.json({ githubToken: token });
 });
